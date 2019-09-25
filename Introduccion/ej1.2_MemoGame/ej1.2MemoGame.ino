@@ -3,8 +3,8 @@ const int greenLed = 4;
 const int redBtn = 3;
 const int greenBtn = 2;
 const int maxTurn = 5;
-bool redBtnPressed = false;
-bool greenBtnPressed = false;
+bool redBtnState = false;
+bool greenBtnState = false;
 const size_t memoSize = 3 + maxTurn;
 int memolist[memoSize];
 int turn = 0;
@@ -12,7 +12,7 @@ int turn = 0;
 void setup()
 {
     Serial.begin(9600);
-    Serial.println("Inicio de sketch - Juego de Memoria");
+    Serial.println("Inicializacion - Juego de Memoria");
     pinMode(redLed, OUTPUT);
     pinMode(greenLed, OUTPUT);
     pinMode(redBtn, INPUT);
@@ -23,50 +23,55 @@ void loop()
 {
     if (turn == 0)
     {
+        Serial.println("Inicio de juego, inicializando Array...");
         initArray(memolist, 3);
     }
     showMemoList();
     delay(1000); // solo 1seg porque en la anterior funcion ya se produjo una espera de otro seg
-    play();
+    userPlay();
+    if (turn != 0) //Comprobar que el juego no se haya reiniciado
+        memoPlay();
 }
 
-void play()
+void memoPlay()
 {
-    if (turn < maxTurn)
+    // turno + 3(caso base) + 1(siguiente posicion)
+    memolist[turn + 3 + 1] = generateRandom(greenLed, redLed);
+}
+
+void userPlay()
+{
+    turn++;
+    int btnPressedCounter = 0;
+    int userSolution[memoSize];
+    while (btnPressedCounter < turn + 3)
     {
-        int btnPressedCounter = 0;
-        int userSolution[memoSize];
-        while (btnPressedCounter < turn + 3)
+
+        bool redPressed = refreshBotonState(digitalRead(redBtn), redBtnState);
+        bool greenPressed = refreshBotonState(digitalRead(greenBtn), greenBtnState);
+        if (redPressed and greenPressed)
         {
-
-            bool redBtnValue = isBotonState(digitalRead(redBtn), redBtnPressed);
-            bool greenBtnValue = isBotonState(digitalRead(greenBtn), greenBtnPressed);
-
-            if (not(redBtnValue and greenBtnValue)) // Solo uno de los botones esta pulsado.
+            Serial.println("No se pueden pulsar los dos botones!");
+        }
+        else if (redPressed != greenPressed) // Solo uno de los botones esta pulsado.
+        {
+            Serial.print("Boton pulsado ");
+            if (redPressed)
             {
-                Serial.print("Boton pulsado ");
-                if (redBtnValue)
-                {
-                    Serial.println("Rojo");
-                    powerOnLed(redLed);
-                    userSolution[btnPressedCounter] = redLed;
-                }
-                else
-                {
-                    Serial.println("Verde");
-                    powerOnLed(greenLed);
-                    userSolution[btnPressedCounter] = greenLed;
-                }
-                btnPressedCounter++;
+                Serial.println("Rojo");
+                powerOnLed(redLed);
+                userSolution[btnPressedCounter] = redLed;
             }
             else
             {
-                Serial.println("No se pueden pulsar los dos botones!");
+                Serial.println("Verde");
+                powerOnLed(greenLed);
+                userSolution[btnPressedCounter] = greenLed;
             }
+            btnPressedCounter++;
         }
-        turn++;
     }
-    checkTurn();
+    checkTurn(userSolution);
 }
 
 void powerOnLed(int led)
@@ -76,7 +81,7 @@ void powerOnLed(int led)
     digitalWrite(led, LOW);
 }
 
-void checkTurn()
+void checkTurn(int userSolution[])
 {
     int succeses = 0;
     for (size_t i = 0; i < turn + 3; i++)
@@ -105,25 +110,28 @@ void checkTurn()
 void resetGame()
 {
     memset(memolist, 0, sizeof(memolist));
-    redBtnPressed = false;
-    greenBtnPressed = false;
+    redBtnState = false;
+    greenBtnState = false;
     turn = 0;
 }
 
 void showMemoList()
 {
+    Serial.println("Estado de Memoria:");
     for (size_t i = 0; i < turn + 3; i++) // Habra minimo 3 elementos que recorrer en el turno inicial y se añade uno por turno
     {
+        Serial.print(memolist[i]);
         digitalWrite(memolist[i], HIGH);
         delay(1000);
     }
+    Serial.println();
 }
 
-void initArray(int[] & array, int count)
+void initArray(int array[], int count)
 {
     for (size_t i = 0; i < count; i++)
     {
-        array[i] = generateRandom(greenLed, redLed)
+        array[i] = generateRandom(greenLed, redLed);
     }
 }
 
@@ -132,22 +140,24 @@ int generateRandom(int min, int max)
     return random(min, max + 1);
 }
 
-bool isBotonState(int value, bool &btnState)
+bool refreshBotonState(int btnValue, bool &btnState)
 {
-    if (value == HIGH and btnState)
-    { //pulsandose
-    }
-    else if (value == HIGH and not btnState)
-    { //Comenzo pulsacion
+    if (!btnState and btnValue == HIGH)
+    { // Pulsacion
         btnState = true;
         return true;
     }
-    else if (value == LOW and btnState)
-    { //Despulso
+    else if (btnState and btnValue == HIGH)
+    { // Pulsado
+        return false;
+    }
+    else if (btnState and btnValue == LOW)
+    { // Liberacion
         btnState = false;
+        return false;
     }
     else
-    { //inicial
+    { // Liberado
+        return false;
     }
-    return false;
 }
