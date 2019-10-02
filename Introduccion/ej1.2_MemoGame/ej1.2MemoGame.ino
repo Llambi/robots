@@ -2,7 +2,7 @@ const int redLed = 5;
 const int greenLed = 4;
 const int redBtn = 3;
 const int greenBtn = 2;
-const int maxTurn = 5;
+const int maxTurn = 1;
 bool redBtnState = false;
 bool greenBtnState = false;
 const size_t memoSize = 3 + maxTurn;
@@ -15,8 +15,8 @@ void setup()
     Serial.println("Inicializacion - Juego de Memoria");
     pinMode(redLed, OUTPUT);
     pinMode(greenLed, OUTPUT);
-    pinMode(redBtn, INPUT);
-    pinMode(greenBtn, INPUT);
+    pinMode(redBtn, INPUT_PULLUP);
+    pinMode(greenBtn, INPUT_PULLUP);
 }
 
 void loop()
@@ -35,13 +35,13 @@ void loop()
 
 void memoPlay()
 {
-    // turno + 3(caso base) + 1(siguiente posicion)
-    memolist[turn + 3 + 1] = generateRandom(greenLed, redLed);
+    // turno + 3(caso base) -1 1(posiciones en listas empiezan en 0)
+    memolist[turn + 3 -1] = generateRandom(greenLed, redLed);
 }
 
 void userPlay()
 {
-    turn++;
+    
     int btnPressedCounter = 0;
     int userSolution[memoSize];
     while (btnPressedCounter < turn + 3)
@@ -49,11 +49,8 @@ void userPlay()
 
         bool redPressed = refreshBotonState(digitalRead(redBtn), redBtnState);
         bool greenPressed = refreshBotonState(digitalRead(greenBtn), greenBtnState);
-        if (redPressed and greenPressed)
-        {
-            Serial.println("No se pueden pulsar los dos botones!");
-        }
-        else if (redPressed != greenPressed) // Solo uno de los botones esta pulsado.
+        
+        if (redPressed != greenPressed) // Solo uno de los botones esta pulsado.
         {
             Serial.print("Boton pulsado ");
             if (redPressed)
@@ -71,7 +68,7 @@ void userPlay()
             btnPressedCounter++;
         }
     }
-    checkTurn(userSolution);
+  	checkTurn(userSolution);
 }
 
 void powerOnLed(int led)
@@ -79,6 +76,7 @@ void powerOnLed(int led)
     digitalWrite(led, HIGH);
     delay(1000);
     digitalWrite(led, LOW);
+  	delay(1000);
 }
 
 void checkTurn(int userSolution[])
@@ -98,7 +96,10 @@ void checkTurn(int userSolution[])
             Serial.println("Has Ganado!");
             resetGame();
         }
-        turn++;
+        else
+        { 
+          turn++;
+        }
     }
     else
     {
@@ -121,8 +122,7 @@ void showMemoList()
     for (size_t i = 0; i < turn + 3; i++) // Habra minimo 3 elementos que recorrer en el turno inicial y se añade uno por turno
     {
         Serial.print(memolist[i]);
-        digitalWrite(memolist[i], HIGH);
-        delay(1000);
+        powerOnLed(memolist[i]);
     }
     Serial.println();
 }
