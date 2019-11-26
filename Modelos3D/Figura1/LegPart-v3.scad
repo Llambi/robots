@@ -1,6 +1,6 @@
-%import("C:/Users/UO251069/Desktop/LegPart-v3.stl");
+//%import("C:/Users/UO251069/Desktop/LegPart-v3.stl");
 
-
+module LegPart(){
 
 difference(){
     translate([-37,26,0])
@@ -54,6 +54,8 @@ for(i=[12 : 6 :18]){
     }
 
 }
+}
+LegPart();
 
 
 

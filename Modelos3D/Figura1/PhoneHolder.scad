@@ -1,5 +1,6 @@
+//%import("C:/Users/UO251069/Desktop/PhoneHolder.stl");
 
-%import("C:/Users/UO251069/Desktop/PhoneHolder.stl");
+module PhoneHolder(){
 
 translate([-36.8,-32.5,1])
 cube([73.6,14,2]);
@@ -45,3 +46,6 @@ hull(){
 rotate([9.75,0,0])
 translate([-25,-14,31.5])
 cube([50,15.7,3]);
+}
+
+PhoneHolder();

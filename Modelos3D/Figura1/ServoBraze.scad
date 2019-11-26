@@ -1,4 +1,6 @@
-%import("C:/Users/UO251069/Desktop/ServoBrace.stl");
+//%import("C:/Users/UO251069/Desktop/ServoBrace.stl");
+
+module ServoBraze(){
 
 difference(){
     translate([-15,-1,0])
@@ -50,3 +52,6 @@ cube([16.5,2,23.75]);
 
 translate([-29.5,17.5,0])
 cube([16.5,2,23.75]);
+}
+
+ServoBraze();
